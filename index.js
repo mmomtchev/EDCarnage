@@ -8,7 +8,7 @@ function createWindow() {
         width: 800,
         height: 600,
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js')
+            preload: path.join(__dirname, 'src', 'preload.js')
         },
         autoHideMenuBar: true
     });
@@ -25,6 +25,6 @@ app.on('window-all-closed', function () {
 });
 
 ipcMain.on('request-data', function(event) {
-    const data = journal('Journal.220123213548.01.log');
+    const data = journal();
     event.returnValue = data;
 });

@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "test",
-    "start": "electron ."
+    "start": "electron .",
+    "dist": "electron-builder && tar -a -C dist\\win-unpacked -c -f dist\\EDCarnage.zip *"
   },
   "repository": {
     "type": "git",
@@ -22,8 +23,22 @@
     "url": "https://github.com/mmomtchev/EDCarnage/issues"
   },
   "homepage": "https://github.com/mmomtchev/EDCarnage#readme",
+  "build": {
+    "appId": "mmomtcev.EDCarnage",
+    "files": [
+      "index.js",
+      "index.html",
+      "carnage.css",
+      "src/*",
+      "font/*",
+      "handlebars/*",
+      "node_modules/bootstrap/dist/css/bootstrap.css",
+      "node_modules/jquery/dist/jquery.min.js"
+    ]
+  },
   "devDependencies": {
-    "electron": "^16.0.7"
+    "electron": "^16.0.7",
+    "electron-builder": "^22.14.5"
   },
   "dependencies": {
     "bootstrap": "^5.1.3",

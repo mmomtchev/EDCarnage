@@ -15,7 +15,6 @@ function setDetail(detailButton) {
 
 function loadData() {
     const data = ipcRenderer.sendSync('request-data', 'journal');
-    console.log(data);
     $('body').html(hbsMain(data));
     setDetail(detail);
 
