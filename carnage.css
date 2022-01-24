@@ -1,0 +1,76 @@
+@font-face {
+  font-family: EurostileBold;
+  src: url("./font/EurostileBold.ttf");
+}
+
+html {
+  font-size: 50%;
+}
+
+body {
+  background-color: #110d0b;
+}
+
+p {
+  margin: 0;
+  padding: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+button {
+  color: #f26d06;
+  font-family: EurostileBold;
+  text-transform: uppercase;
+  margin: 4px;
+  padding: 4px;
+}
+
+h1,
+h2,
+button {
+  background-color: #2b1507;
+}
+
+button {
+  margin: 4px;
+  padding: 4px;
+  font-size: 16px;
+  width: 24px;
+  height: 24px;
+  font-size: 1.6em;
+}
+
+.active {
+  background-color: #522509;
+}
+
+h3,
+h4,
+h5 {
+  background-color: #522509;
+}
+
+.missions h2 {
+  margin-left: 16px;
+}
+
+.missions h3 {
+  margin-left: 32px;
+}
+
+.missions h4,
+.missions h5 {
+  margin-left: 48px;
+}
+
+.missions h5 {
+  margin-left: 64px;
+}
+
+.vw10 {
+    width: 10vw;
+}

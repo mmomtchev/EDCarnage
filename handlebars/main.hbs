@@ -1,0 +1,69 @@
+{{#*inline "title"}}
+    <div class="lvl1">
+        <div class="d-flex flex-row justify-content-between">
+            <p>{{@key}}</p>
+            <p>{{done}}/{{kills}} targets</p>
+        </div>
+    </div>
+{{/inline}}
+{{#*inline "subtitle"}}
+    <div class="lvl2">
+        <div class="lvl2 d-flex flex-row justify-content-between">
+            <p>{{number}} mission{{#ifmore number}}s{{/ifmore}}</p>
+            <p>{{credits each}} each</p>
+            <p>{{credits reward}}</p>
+        </div>
+    </div>
+{{/inline}}
+{{#*inline "element"}}
+    <h{{size1}}>
+        {{> title this}}
+    </h{{size1}}>
+    <h{{size2}}>
+        {{> subtitle this}}
+    </h{{size2}}>
+{{/inline}}
+{{#*inline "stats"}}
+    <div class="d-flex flex-row w-100">
+        <div class="d-flex flex-column w-100">
+            <h4>Kills: {{kills}}</h4>
+            <h4>Reward: {{credits reward}}</h4>
+        </div>
+        <div class="d-flex flex-column w-100">
+            <h4>Bounties: {{credits bounty}}</h4>
+            <h4>Total: {{credits money}}</h4>
+        </div>
+    </div>
+{{/inline}}
+<div class="row gx-0 stats">
+    <div class="col-1 d-flex flex-column vw10">
+        <button id="lvl1">1</button>
+        <button id="lvl2" class="active">2</button>
+        <button id="lvl3">3</button>
+    </div>
+    <div class="col">
+        <h2>Session</h2>
+        {{> stats statsTotal}}
+    </div>
+    <div class="col">
+        <h2>Last Hour</h2>
+        {{> stats statsHour}}
+    </div>div>
+</div>
+<div class="missions">
+    {{#each missions as |system|}}
+        {{> element this size1=1 size2=3}}
+        {{#each missions as |giver|}}
+            {{> element this size1=2 size2=4}}
+            {{#each missions as |mission|}}
+                <div class="lvl3">
+                    <h5 class="d-flex flex-row justify-content-between">
+                        <p>{{kills}} targets</p>
+                        <p>{{credits each}} each</p>
+                        <p>{{credits reward}}</p>
+                    </h5>
+                </div>
+            {{/each}}
+        {{/each}}
+    {{/each}}
+</div>

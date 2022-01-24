@@ -1,0 +1,33 @@
+{
+  "name": "edcarnage",
+  "version": "1.0.0",
+  "description": "EDCarnage, a tool for stacking massacre missions in Elite Dangerous",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mmomtchev/EDCarnage.git"
+  },
+  "keywords": [
+    "Elite",
+    "Dangerous",
+    "massacre"
+  ],
+  "author": "Momtchil Momtchev <momtchil@momtchev.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mmomtchev/EDCarnage/issues"
+  },
+  "homepage": "https://github.com/mmomtchev/EDCarnage#readme",
+  "devDependencies": {
+    "electron": "^16.0.7"
+  },
+  "dependencies": {
+    "bootstrap": "^5.1.3",
+    "handlebars": "^4.7.7",
+    "jquery": "^3.6.0"
+  }
+}
