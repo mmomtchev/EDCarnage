@@ -35,7 +35,7 @@ function parseEvent(ev, context) {
         missions[target].missions[ev.Faction].reward += ev.Reward;
         missions[target].missions[ev.Faction].kills += ev.KillCount;
         missions[target].missions[ev.Faction].each = Math.round(missions[target].missions[ev.Faction].reward / missions[target].missions[ev.Faction].kills);
-    } else if (ev.event === 'aMissionCompleted' || ev.event === 'MissionAbandoned' || ev.event === 'MissionFailed') {
+    } else if (ev.event === 'MissionCompleted' || ev.event === 'MissionAbandoned' || ev.event === 'MissionFailed') {
         if (flatMissions[ev.MissionID]) {
             const mission = flatMissions[ev.MissionID];
             const target = `${mission.targetFaction} @ ${mission.targetSystem}`;
