@@ -1,84 +1,77 @@
 const fs = require('fs');
+const path = require('path');
 
-function parse(file) {
-    const journal = [];
-    for (const line of fs.readFileSync(file).toString().split('\n')) {
-        try {
-            journal.push(JSON.parse(line));
-        } catch {
-            continue;
-        }
-    }
+function parseEvent(ev, context) {
+    const { missions, flatMissions, statsHour, statsTotal } = context;
 
-    const now = Date.now();
-    const missions = {};
-    const flatMissions = {};
-    const statsTotal = { reward: 0, bounty: 0, kills: 0 };
-    const statsHour = { reward: 0, bounty: 0, kills: 0 };
-    let currentSystem;
-    journal.filter((ev) => (ev.event === 'MissionAccepted' && ev.Name.match(/^Mission_Massacre/) ||
-        ev.event === 'Bounty' ||
-        (ev.event === 'StartJump' && ev.JumpType === 'Hyperspace') ||
-        ev.event === 'MissionRedirected' ||
-        ev.event === 'Location'
-    )).map((ev) => {
-        if (ev.event === 'StartJump' || ev.event === 'Location') {
-            currentSystem = ev.StarSystem;
-        } else if (ev.event === 'MissionAccepted') {
-            const mission = {
-                id: ev.MissionID,
-                targetSystem: ev.DestinationSystem,
-                targetFaction: ev.TargetFaction,
-                giver: ev.Faction,
-                kills: ev.KillCount,
-                station: ev.DestinationStation,
-                reward: ev.Reward,
-                each: Math.round(ev.Reward / ev.KillCount)
-            };
+    const lastHour = (ts) => (context.now - Date.parse(ts) < 3600 * 1000);
 
-            const target = `${ev.TargetFaction} @ ${ev.DestinationSystem}`;
-            if (missions[target] === undefined)
-                missions[target] = { missions: {}, done: 0, number: 0, kills: 0, reward: 0 };
-            if (missions[target].missions[ev.Faction] === undefined)
-                missions[target].missions[ev.Faction] = { missions: [], done: 0, number: 0, kills: 0, reward: 0 };
+    if ((ev.event === 'StartJump' && ev.JumpType === 'Hyperspace') || ev.event === 'Location') {
+        context.currentSystem = ev.StarSystem;
+    } else if (ev.event === 'MissionAccepted' && ev.Name.match(/^Mission_Massacre/)) {
+        if (new Date(ev.Expiry) < context.now)
+            return;
+        const mission = {
+            id: ev.MissionID,
+            targetSystem: ev.DestinationSystem,
+            targetFaction: ev.TargetFaction,
+            giver: ev.Faction,
+            kills: ev.KillCount,
+            station: ev.DestinationStation,
+            reward: ev.Reward,
+            each: Math.round(ev.Reward / ev.KillCount)
+        };
 
-            missions[target].missions[ev.Faction].missions.push(mission);
-            flatMissions[ev.MissionID] = mission;
+        const target = `${ev.TargetFaction} @ ${ev.DestinationSystem}`;
+        if (missions[target] === undefined)
+            missions[target] = { missions: {}, done: 0, number: 0, kills: 0, reward: 0 };
+        if (missions[target].missions[ev.Faction] === undefined)
+            missions[target].missions[ev.Faction] = { missions: [], done: 0, number: 0, kills: 0, reward: 0 };
 
-            missions[target].missions[ev.Faction].number++;
-            missions[target].missions[ev.Faction].reward += ev.Reward;
-            missions[target].missions[ev.Faction].kills += ev.KillCount;
-            missions[target].missions[ev.Faction].each = Math.round(missions[target].missions[ev.Faction].reward / missions[target].missions[ev.Faction].kills);
-        } else if (ev.event === 'aMissionRedirected') {
-            if (flatMissions[ev.MissionID]) {
-                const mission = flatMissions[ev.MissionID];
-                const target = `${mission.targetFaction} @ ${mission.targetSystem}`;
-                const idx = missions[target].missions[mission.giver].missions.find((m) => m.id === ev.MissionID);
-                if (idx !== -1) {
-                    missions[target].missions[mission.giver].missions.splice(idx, 1);
-                    missions[target].missions[mission.giver].number--;
-                    missions[target].missions[mission.giver].kills -= mission.kills;
-                    missions[target].missions[mission.giver].done -= mission.kills;
-                    missions[target].missions[mission.giver].reward -= mission.reward;
-                    missions[target].missions[mission.giver].each = Math.round(missions[target].missions[mission.giver].reward /
-                        missions[target].missions[mission.giver].kills);
-                    if (missions[target].missions[mission.giver].number === 0)
-                        delete missions[target].missions[mission.giver];
+        missions[target].missions[ev.Faction].missions.push(mission);
+        flatMissions[ev.MissionID] = mission;
+
+        missions[target].missions[ev.Faction].number++;
+        missions[target].missions[ev.Faction].reward += ev.Reward;
+        missions[target].missions[ev.Faction].kills += ev.KillCount;
+        missions[target].missions[ev.Faction].each = Math.round(missions[target].missions[ev.Faction].reward / missions[target].missions[ev.Faction].kills);
+    } else if (ev.event === 'aMissionCompleted' || ev.event === 'MissionAbandoned' || ev.event === 'MissionFailed') {
+        if (flatMissions[ev.MissionID]) {
+            const mission = flatMissions[ev.MissionID];
+            const target = `${mission.targetFaction} @ ${mission.targetSystem}`;
+            const idx = missions[target].missions[mission.giver].missions.findIndex((m) => m.id === ev.MissionID);
+            if (idx !== -1) {
+                missions[target].missions[mission.giver].number--;
+                missions[target].missions[mission.giver].kills -= mission.kills;
+                missions[target].missions[mission.giver].done -= mission.kills;
+                missions[target].missions[mission.giver].reward -= mission.reward;
+                if (context.session) {
+                    statsTotal.reward -= missions[target].missions[mission.giver].each * mission.kills;
+                    statsTotal.reward += mission.reward;
                 }
+                missions[target].missions[mission.giver].missions.splice(idx, 1);
+                missions[target].missions[mission.giver].each = Math.round(missions[target].missions[mission.giver].reward /
+                    missions[target].missions[mission.giver].kills);
+                if (missions[target].missions[mission.giver].number === 0)
+                    delete missions[target].missions[mission.giver];
             }
-        } else if (ev.event === 'Bounty') {
-            const target = `${ev.VictimFaction} @ ${currentSystem}`;
-            if (missions[target] && missions[target].missions) {
-                for (const f of Object.keys(missions[target].missions)) {
-                    if (missions[target].missions[f].done < missions[target].missions[f].kills) {
-                        missions[target].missions[f].done++;
-                        if (now - Date.parse(ev.timestamp) < 3600 * 1000) {
+        }
+    } else if (ev.event === 'Bounty') {
+        const target = `${ev.VictimFaction} @ ${context.currentSystem}`;
+        if (missions[target] && missions[target].missions) {
+            for (const f of Object.keys(missions[target].missions)) {
+                if (missions[target].missions[f].done < missions[target].missions[f].kills) {
+                    missions[target].missions[f].done++;
+                    if (context.session) {
+                        if (lastHour(ev.timestamp)) {
                             statsHour.reward += missions[target].missions[f].each;
                         }
                         statsTotal.reward += missions[target].missions[f].each;
                     }
                 }
-                if (now - Date.parse(ev.timestamp) < 3600 * 1000) {
+            }
+            if (context.session) {
+                if (lastHour(ev.timestamp)) {
                     statsHour.bounty += ev.TotalReward;
                     statsHour.kills++;
                 }
@@ -86,7 +79,51 @@ function parse(file) {
                 statsTotal.kills++;
             }
         }
-    });
+    };
+}
+
+function parseFile(file, context) {
+    for (const line of fs.readFileSync(file).toString().split('\n')) {
+        let event;
+        try {
+            event = JSON.parse(line);
+        } catch {
+            continue;
+        }
+        parseEvent(event, context);
+    }
+}
+
+function parseAll() {
+    const now = Date.now();
+
+    const dir = path.join(process.env.USERPROFILE, '/Saved Games/Frontier Developments/Elite Dangerous');
+    const list = fs.readdirSync(dir).filter((f) => f.match(/Journal\.([0-9]{2})([0-9]{2})([0-9]{2})/))
+        .sort((a, b) => ('' + a.attr).localeCompare(b.attr));;
+
+    const context = {
+        missions: {},
+        flatMissions: {},
+        currentSystem: undefined,
+        sesion: false,
+        statsHour: { reward: 0, bounty: 0, kills: 0 },
+        statsTotal: { reward: 0, bounty: 0, kills: 0 },
+        now: Date.now()
+    };
+    const last = list.pop();
+    for (const file of list) {
+        const g = file.match(/Journal.*\.([0-9]{2})([0-9]{2})([0-9]{2})/);
+        if (!g) continue;
+        const d = new Date(`20${g[1]}-${g[2]}-${g[3]}`);
+        if (context.now - d > 7 * 24 * 3600 * 1000)
+            continue;
+
+        parseFile(path.join(dir, file), context);
+    }
+    context.session = true;
+    parseFile(path.join(dir, last), context);
+
+    const { missions, statsHour, statsTotal } = context;
 
     statsHour.money = statsHour.reward + statsHour.bounty;
     statsTotal.money = statsTotal.reward + statsTotal.bounty;
@@ -112,4 +149,4 @@ function parse(file) {
     };
 }
 
-module.exports = parse;
+module.exports = parseAll;

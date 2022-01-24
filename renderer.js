@@ -1,27 +1,31 @@
 const ipcRenderer = window.EDCarnage.ipcRenderer;
 const hbsMain = window.EDCarnage.hbsMain;
 
+let detail;
+
+function setDetail(detailButton) {
+    for (const lvl of [1, 2, 3]) {
+        $(`#lvl${lvl}`).removeClass('active');
+        if (lvl <= detailButton) $(`.lvl${lvl}`).show();
+        else $(`.lvl${lvl}`).hide();
+    }
+    $(`#lvl${detailButton}`).addClass('active');
+    detail = detailButton;
+}
+
 function loadData() {
     const data = ipcRenderer.sendSync('request-data', 'journal');
     console.log(data);
     $('body').html(hbsMain(data));
-    $(`.lvl3`).hide();
+    setDetail(detail);
 
     for (const detailButton of [1, 2, 3]) {
-        $(`#lvl${detailButton}`).on('click', function () {
-            for (const lvl of [1, 2, 3]) {
-                $(`#lvl${lvl}`).removeClass('active');
-                if (lvl <= detailButton) $(`.lvl${lvl}`).show();
-                else $(`.lvl${lvl}`).hide();
-            }
-            $(`#lvl${detailButton}`).addClass('active');
-        });
+        $(`#lvl${detailButton}`).on('click', () => setDetail(detailButton));
     }
 }
 
 $(function () {
-    console.log(hbsMain, ipcRenderer);
-
+    detail = 2;
     setInterval(loadData, 5 * 1000);
     loadData();
 });
