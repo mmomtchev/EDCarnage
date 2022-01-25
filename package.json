@@ -6,7 +6,7 @@
   "scripts": {
     "test": "test",
     "start": "electron .",
-    "dist": "electron-builder && tar -a -C dist\\win-unpacked -c -f dist\\EDCarnage.zip *",
+    "dist": "electron-builder && tar -a -C dist\\win-unpacked -c -f dist\\EDCarnage-%npm_package_version%.zip *",
     "preversion": "npm run dist",
     "version": "git add package.json",
     "postversion": "git push && git push --tags"
