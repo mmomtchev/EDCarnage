@@ -4,7 +4,7 @@
   "description": "EDCarnage, a tool for stacking massacre missions in Elite Dangerous",
   "main": "index.js",
   "scripts": {
-    "test": "test",
+    "test": "mocha",
     "start": "electron .",
     "dist": "electron-builder && tar -a -C dist\\win-unpacked -c -f dist\\EDCarnage.zip *",
     "preversion": "npm run dist",
@@ -40,8 +40,10 @@
     ]
   },
   "devDependencies": {
+    "chai": "^4.3.4",
     "electron": "^16.0.7",
-    "electron-builder": "^22.14.5"
+    "electron-builder": "^22.14.5",
+    "mocha": "^9.2.0"
   },
   "dependencies": {
     "bootstrap": "^5.1.3",

@@ -34,7 +34,8 @@ function parseEvent(ev, context) {
         missions[target].missions[ev.Faction].number++;
         missions[target].missions[ev.Faction].reward += ev.Reward;
         missions[target].missions[ev.Faction].kills += ev.KillCount;
-        missions[target].missions[ev.Faction].each = Math.round(missions[target].missions[ev.Faction].reward / missions[target].missions[ev.Faction].kills);
+        missions[target].missions[ev.Faction].each = Math.round(missions[target].missions[ev.Faction].reward /
+            missions[target].missions[ev.Faction].kills);
     } else if (ev.event === 'MissionCompleted' || ev.event === 'MissionAbandoned' || ev.event === 'MissionFailed') {
         if (flatMissions[ev.MissionID]) {
             const mission = flatMissions[ev.MissionID];
@@ -43,7 +44,8 @@ function parseEvent(ev, context) {
             if (idx !== -1) {
                 missions[target].missions[mission.giver].number--;
                 missions[target].missions[mission.giver].kills -= mission.kills;
-                missions[target].missions[mission.giver].done -= mission.kills;
+                missions[target].missions[mission.giver].done = Math.max(0,
+                    missions[target].missions[mission.giver].done - mission.kills);
                 missions[target].missions[mission.giver].reward -= mission.reward;
                 if (context.session) {
                     statsTotal.reward -= missions[target].missions[mission.giver].each * mission.kills;
@@ -94,10 +96,10 @@ function parseFile(file, context) {
     }
 }
 
-function parseAll() {
+function parseAll(test) {
     const now = Date.now();
 
-    const dir = path.join(process.env.USERPROFILE, '/Saved Games/Frontier Developments/Elite Dangerous');
+    const dir = test || path.join(process.env.USERPROFILE, '/Saved Games/Frontier Developments/Elite Dangerous');
     const list = fs.readdirSync(dir).filter((f) => f.match(/Journal\.([0-9]{2})([0-9]{2})([0-9]{2})/))
         .sort((a, b) => ('' + a.attr).localeCompare(b.attr));;
 
@@ -129,10 +131,15 @@ function parseAll() {
     statsTotal.money = statsTotal.reward + statsTotal.bounty;
 
     Object.keys(missions).map((t) => {
-        missions[t].number = Object.keys(missions[t].missions).reduce((a, c) => (a + missions[t].missions[c].number), 0);
-        missions[t].reward = Object.keys(missions[t].missions).reduce((a, c) => (a + missions[t].missions[c].reward), 0);
-        missions[t].kills = Object.keys(missions[t].missions).reduce((a, c) => (Math.max(a, missions[t].missions[c].kills)), 0);
-        missions[t].remain = Object.keys(missions[t].missions).reduce((a, c) => (Math.max(a, missions[t].missions[c].kills - missions[t].missions[c].done)), 0);
+        missions[t].number = Object.keys(missions[t].missions).reduce((a, c) =>
+            (a + missions[t].missions[c].number), 0);
+        missions[t].reward = Object.keys(missions[t].missions).reduce((a, c) =>
+            (a + missions[t].missions[c].reward), 0);
+        missions[t].kills = Object.keys(missions[t].missions).reduce((a, c) =>
+            (Math.max(a, missions[t].missions[c].kills)), 0);
+        missions[t].remain = Object.keys(missions[t].missions).reduce((a, c) =>
+            (Math.max(a, missions[t].missions[c].kills - missions[t].missions[c].done)), 0);
+            
         missions[t].done = missions[t].kills - missions[t].remain;
         if (missions[t].kills > 0)
             missions[t].each = Math.round(missions[t].reward / missions[t].kills);
