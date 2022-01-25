@@ -99,9 +99,14 @@ function parseFile(file, context) {
 function parseAll(test) {
     const now = Date.now();
 
-    const dir = test || path.join(process.env.USERPROFILE, '/Saved Games/Frontier Developments/Elite Dangerous');
-    const list = fs.readdirSync(dir).filter((f) => f.match(/Journal\.([0-9]{2})([0-9]{2})([0-9]{2})/))
-        .sort((a, b) => ('' + a.attr).localeCompare(b.attr));;
+    let list, dir;
+    try {
+        dir = test || path.join(process.env.USERPROFILE, '/Saved Games/Frontier Developments/Elite Dangerous');
+        list = fs.readdirSync(dir).filter((f) => f.match(/Journal\.([0-9]{2})([0-9]{2})([0-9]{2})/))
+        .sort((a, b) => ('' + a.attr).localeCompare(b.attr));
+    } catch (e) {
+        throw new Error('Cannot open Elite Dangerous journal');
+    }
 
     const context = {
         missions: {},
