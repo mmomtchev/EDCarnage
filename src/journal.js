@@ -37,6 +37,7 @@ function parseEvent(ev, context) {
         missions[target].missions[ev.Faction].each = Math.round(missions[target].missions[ev.Faction].reward /
             missions[target].missions[ev.Faction].kills);
     } else if (ev.event === 'MissionCompleted' || ev.event === 'MissionAbandoned' || ev.event === 'MissionFailed') {
+        // TODO This should (ideally) be a two-step process on MissionRedirected and on MissionCompleted
         if (flatMissions[ev.MissionID]) {
             const mission = flatMissions[ev.MissionID];
             const target = `${mission.targetFaction} @ ${mission.targetSystem}`;
@@ -49,7 +50,8 @@ function parseEvent(ev, context) {
                 missions[target].missions[mission.giver].reward -= mission.reward;
                 if (context.session) {
                     statsTotal.reward -= missions[target].missions[mission.giver].each * mission.kills;
-                    statsTotal.reward += mission.reward;
+                    if (ev.event === 'MissionCompleted')
+                        statsTotal.reward += mission.reward;
                 }
                 missions[target].missions[mission.giver].missions.splice(idx, 1);
                 missions[target].missions[mission.giver].each = Math.round(missions[target].missions[mission.giver].reward /
