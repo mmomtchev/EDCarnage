@@ -25,6 +25,6 @@ app.on('window-all-closed', function () {
 });
 
 ipcMain.on('request-data', function(event) {
-    const data = journal();
+    const data = journal(process.argv[2]);
     event.returnValue = data;
 });

@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/mmomtchev/EDCarnage#readme",
   "build": {
-    "appId": "mmomtcev.EDCarnage",
+    "appId": "mmomtchev.EDCarnage",
     "files": [
       "index.js",
       "index.html",
