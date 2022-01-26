@@ -98,7 +98,7 @@ function parseFile(file, context) {
     }
 }
 
-function parseAll(test) {
+function parseAll(test, oldDate) {
     const now = Date.now();
 
     let list, dir;
@@ -120,10 +120,16 @@ function parseAll(test) {
         now: Date.now()
     };
     const last = list.pop();
+    if (oldDate) {
+        const lastJournal = fs.readFileSync(path.join(dir, last)).toString().split('\n');
+        const lastLine = lastJournal[lastJournal.length - 2];
+        const lastTimestamp = JSON.parse(lastLine);
+        context.now = lastTimestamp;
+    }
     for (const file of list) {
         const g = file.match(/Journal.*\.([0-9]{2})([0-9]{2})([0-9]{2})/);
         if (!g) continue;
-        const d = new Date(`20${g[1]}-${g[2]}-${g[3]}`);
+        const d = Date.parse(`20${g[1]}-${g[2]}-${g[3]}`);
         if (context.now - d > 7 * 24 * 3600 * 1000)
             continue;
 

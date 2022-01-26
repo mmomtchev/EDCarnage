@@ -7,11 +7,12 @@
         {
             "type": "pwa-node",
             "request": "launch",
-            "name": "Launch test-journal",
+            "name": "Launch tests",
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/test-journal.js"
+            "program": "${workspaceFolder}/node_modules/mocha/lib/cli/cli.js",
+            "args": [ "-g", "test1", "--timeout", "0" ]
         }
     ]
 }
