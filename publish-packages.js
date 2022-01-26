@@ -5,9 +5,7 @@ const path = require('path');
 const octokit = new Octokit({ auth: process.env.NODE_PRE_GYP_GITHUB_TOKEN });
 
 const repo = { owner: 'mmomtchev', repo: 'EDCarnage' };
-//const version = require('./package.json').version;
-
-const version = '1.0.0';
+const version = require('./package.json').version;
 
 (async () => {
 
@@ -19,13 +17,13 @@ const version = '1.0.0';
   })).data.filter((r) => r.tag_name === `v${version}`)[0];
 
   if (!release) {
-    release = await octokit.rest.repos.createRelease({
+    release = (await octokit.rest.repos.createRelease({
       ...repo,
       tag_name: `v${version}`
-    }).data;
+    })).data;
   }
 
-  console.log(`id is ${release.id}\n`);
+  process.stdout.write(`id is ${release.id}\n`);
 
   for (const asset of [`EDCarnage-${version}.zip`, `edcarnage Setup ${version}.exe`]) {
     process.stdout.write(`Uploading ${asset}\n`);

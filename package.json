@@ -7,9 +7,9 @@
     "test": "mocha",
     "start": "electron .",
     "dist": "electron-builder && tar -a -C dist\\win-unpacked -c -f dist\\EDCarnage-%npm_package_version%.zip *",
-    "preversion": "npm run dist",
+    "preversion": "npm test",
     "version": "git add package.json",
-    "postversion": "git push && git push --tags && node publish-packages.js"
+    "postversion": "git push && git push --tags && npm run dist && node publish-packages.js"
   },
   "repository": {
     "type": "git",
