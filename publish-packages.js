@@ -29,7 +29,7 @@ const version = require('./package.json').version;
     process.stdout.write(`Uploading ${asset}\n`);
     await octokit.rest.repos.uploadReleaseAsset({
       ...repo,
-      release_id: `v${version}`,
+      release_id: release.id,
       name: asset,
       data: fs.readFileSync(path.join('dist', asset)),
     });
