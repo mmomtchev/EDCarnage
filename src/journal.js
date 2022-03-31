@@ -100,11 +100,12 @@ function parseFile(file, context) {
 
 function parseAll(test, oldDate) {
     const now = Date.now();
+    const JournalRegEx = /Journal\.([0-9]{2,4})-?([0-9]{2})-?([0-9]{2})/;
 
     let list, dir;
     try {
         dir = test || path.join(process.env.USERPROFILE, '/Saved Games/Frontier Developments/Elite Dangerous');
-        list = fs.readdirSync(dir).filter((f) => f.match(/Journal\.([0-9]{2})([0-9]{2})([0-9]{2})/))
+        list = fs.readdirSync(dir).filter((f) => f.match(JournalRegEx))
         .sort((a, b) => ('' + a.attr).localeCompare(b.attr));
     } catch (e) {
         throw new Error('Cannot open Elite Dangerous journal');
@@ -127,7 +128,7 @@ function parseAll(test, oldDate) {
         context.now = lastTimestamp;
     }
     for (const file of list) {
-        const g = file.match(/Journal.*\.([0-9]{2})([0-9]{2})([0-9]{2})/);
+        const g = file.match(JournalRegEx);
         if (!g) continue;
         const d = Date.parse(`20${g[1]}-${g[2]}-${g[3]}`);
         if (context.now - d > 7 * 24 * 3600 * 1000)
